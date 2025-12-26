@@ -1,4 +1,4 @@
-package com.yota.core;
+package com.ayota.core;
 
 import java.util.HashMap;
 

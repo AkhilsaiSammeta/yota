@@ -1,8 +1,8 @@
-package com.yota.controller;
+package com.ayota.controller;
 
-import com.yota.service.MLService;
-import com.yota.model.AnalysisResult;
-import com.yota.model.MLResult;
+import com.ayota.service.MLService;
+import com.ayota.model.AnalysisResult;
+import com.ayota.model.MLResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +30,7 @@ public class MLController {
      */
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("pageTitle", "YOTA ML Engine - WEKA-like Interface");
+        model.addAttribute("pageTitle", "AYOTA ML Engine - WEKA-like Interface");
         model.addAttribute("currentTab", "home");
         return "index";
     }

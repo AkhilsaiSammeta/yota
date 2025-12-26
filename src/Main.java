@@ -30,7 +30,7 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("🚀 YOTA ML Engine - Enhanced Multi-Algorithm Version");
+        System.out.println("🚀 AYOTA ML Engine - Enhanced Multi-Algorithm Version");
         System.out.println("═".repeat(65));
         
         // ===== STEP 1: LOAD DATA =====
@@ -178,7 +178,7 @@ public class Main {
         System.out.println("═".repeat(50));
         demonstratePredictions(bestClassifier, dataset);
         
-        System.out.println("🎉 YOTA ML Engine Complete!");
+        System.out.println("🎉 AYOTA ML Engine Complete!");
         System.out.println("═".repeat(65));
     }
     

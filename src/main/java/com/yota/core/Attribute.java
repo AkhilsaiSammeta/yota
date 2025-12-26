@@ -1,4 +1,4 @@
-package com.yota.core;
+package com.ayota.core;
 
 /**
  * ATTRIBUTE CLASS (Spring Boot Version)

@@ -1,4 +1,4 @@
-package com.yota.model;
+package com.ayota.model;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package main.java.com.yota.core;
+package com.ayota.core;
 
 import java.util.ArrayList;
 

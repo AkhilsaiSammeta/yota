@@ -1,4 +1,4 @@
-# YOTA - Beginner-Friendly Java ML Engine
+# AYOTA - Beginner-Friendly Java ML Engine
 
 A simple, educational machine learning engine built from scratch in **Java 23** for **Eclipse IDE**. This project demonstrates how popular ML tools like **WEKA** work internally, combined with **Power BI-style** data analytics.
 
@@ -12,7 +12,7 @@ A simple, educational machine learning engine built from scratch in **Java 23** 
 ## 📁 Project Structure
 
 ```
-yota/
+ayota/
 ├── src/
 │   ├── core/                 # Core data structures
 │   │   ├── Attribute.java    # Column definitions
@@ -90,14 +90,14 @@ yota/
 # Select "Run As" → "Java Application"
 
 # Or use command line:
-cd yota/
+    cd ayota/
 javac -d bin src/**/*.java
 java -cp bin Main
 ```
 
 ### 3. Expected Output
 ```
-🚀 YOTA ML Engine Started
+🚀 AYOTA ML Engine Started
 =================================
 📂 Loading dataset...
 ✅ Dataset loaded: Dataset{Employee Data | Attributes: 4 | Instances: 20}
@@ -134,7 +134,7 @@ Junior Candidate (Age: 26, Salary: $47000, Exp: 2 years) → Prediction: NotHire
 Mid-level Candidate (Age: 32, Salary: $68000, Exp: 6 years) → Prediction: Hired
 Senior Candidate (Age: 40, Salary: $90000, Exp: 12 years) → Prediction: Hired
 
-🎉 YOTA ML Engine Complete!
+🎉 AYOTA ML Engine Complete!
 ```
 
 ## 📚 Educational Features

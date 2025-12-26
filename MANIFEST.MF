@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Main-Class: Main
+Class-Path: .
+
+Name: YotaML-Console
+Main-Class: Main
+
+Name: YotaML-Web  
+Main-Class: YotaWebServer
+
+Name: YotaML-Enhanced
+Main-Class: EnhancedKNNDemo
+
+Name: YotaML-Formatter
+Main-Class: QuickKNNFormatter

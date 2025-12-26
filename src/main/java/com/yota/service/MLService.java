@@ -1,8 +1,8 @@
-package com.yota.service;
+package com.ayota.service;
 
-import com.yota.core.*;
-import com.yota.model.AnalysisResult;
-import com.yota.model.MLResult;
+import com.ayota.core.*;
+import com.ayota.model.AnalysisResult;
+import com.ayota.model.MLResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
