@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{index :: html}">
+<head>
+    <title>Preprocess - YOTA ML Engine</title>
+</head>
+<body>
+    <div th:fragment="content" class="tab-pane fade show active" id="preprocess" role="tabpanel">
+        <div class="row">
+            <!-- Left Panel - Data Loading -->
+            <div class="col-md-6">
+                <div class="weka-panel">
+                    <div class="weka-panel-header">
+                        📂 Data Loading
+                    </div>
+                    <div class="weka-panel-body">
+                        <!-- File Upload -->
+                        <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+                            <div class="upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5>Upload CSV File</h5>
+                                <p class="text-muted">Select your dataset (CSV format)</p>
+                                <input type="file" class="form-control mb-3" name="file" accept=".csv" required>
+                                <button type="submit" class="btn btn-weka">
+                                    <i class="fas fa-upload"></i> Upload & Analyze
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center my-3">
+                            <span class="text-muted">— OR —</span>
+                        </div>
+                        
+                        <!-- Sample Dataset -->
+                        <form th:action="@{/load-sample}" method="post">
+                            <div class="text-center">
+                                <p class="mb-2">Use built-in sample dataset</p>
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="fas fa-database"></i> Load Sample Employee Data
+                                </button>
+                                <small class="d-block text-muted mt-2">
+                                    20 records: Age, Salary, Experience → Hired/NotHired
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Data Format Info -->
+                <div class="weka-panel">
+                    <div class="weka-panel-header">
+                        ℹ️ CSV Format Requirements
+                    </div>
+                    <div class="weka-panel-body">
+                        <ul class="mb-0">
+                            <li><strong>First row:</strong> Column headers</li>
+                            <li><strong>Last column:</strong> Class/target variable</li>
+                            <li><strong>Separator:</strong> Comma (,)</li>
+                            <li><strong>Encoding:</strong> UTF-8</li>
+                        </ul>
+                        
+                        <h6 class="mt-3">Example Format:</h6>
+                        <pre class="bg-light p-2 border rounded" style="font-size: 0.8rem;">Age,Salary,Experience,Hired
+25,45000,2,NotHired
+30,65000,5,Hired
+35,80000,8,Hired</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Data Analysis -->
+            <div class="col-md-6">
+                <div th:if="${analysisResult}" class="weka-panel">
+                    <div class="weka-panel-header">
+                        📊 Dataset Analysis
+                    </div>
+                    <div class="weka-panel-body">
+                        <!-- Dataset Summary -->
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <div class="metric-card">
+                                    <div class="metric-value" th:text="${analysisResult.totalRows}">0</div>
+                                    <div class="metric-label">Rows</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="metric-card">
+                                    <div class="metric-value" th:text="${analysisResult.totalColumns}">0</div>
+                                    <div class="metric-label">Columns</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="metric-card">
+                                    <div class="metric-value" th:text="${#maps.size(analysisResult.columnStatistics)}">0</div>
+                                    <div class="metric-label">Features</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Column Statistics -->
+                        <h6><i class="fas fa-table"></i> Column Statistics</h6>
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Column</th>
+                                        <th>Type</th>
+                                        <th>Min</th>
+                                        <th>Max</th>
+                                        <th>Avg</th>
+                                        <th>Unique</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="stat : ${analysisResult.columnStatistics}">
+                                        <td><strong th:text="${stat.value.columnName}">Column</strong></td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${stat.value.columnType == 'numeric'} ? 'bg-primary' : 'bg-secondary'"
+                                                  th:text="${stat.value.columnType}">Type</span>
+                                        </td>
+                                        <td th:text="${stat.value.min != null} ? ${#numbers.formatDecimal(stat.value.min, 0, 2)} : '-'">-</td>
+                                        <td th:text="${stat.value.max != null} ? ${#numbers.formatDecimal(stat.value.max, 0, 2)} : '-'">-</td>
+                                        <td th:text="${stat.value.average != null} ? ${#numbers.formatDecimal(stat.value.average, 0, 2)} : '-'">-</td>
+                                        <td th:text="${stat.value.uniqueValues}">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Class Distribution -->
+                        <div th:if="${analysisResult.frequencyTables}" class="mb-3">
+                            <h6><i class="fas fa-chart-pie"></i> Class Distribution</h6>
+                            <canvas id="classDistributionChart" width="400" height="200"></canvas>
+                        </div>
+                        
+                        <!-- Missing Values -->
+                        <div th:if="${analysisResult.missingValueColumns and not #lists.isEmpty(analysisResult.missingValueColumns)}">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Missing Values Detected:</strong>
+                                <span th:each="col, iterStat : ${analysisResult.missingValueColumns}">
+                                    <span th:text="${col}">Column</span><span th:unless="${iterStat.last}">, </span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div th:unless="${analysisResult.missingValueColumns and not #lists.isEmpty(analysisResult.missingValueColumns)}">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Data Quality:</strong> No missing values detected
+                            </div>
+                        </div>
+                        
+                        <!-- Next Steps -->
+                        <div class="mt-3">
+                            <a th:href="@{/classify}" class="btn btn-weka">
+                                <i class="fas fa-arrow-right"></i> Proceed to Classification
+                            </a>
+                            <a th:href="@{/visualize}" class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-chart-bar"></i> Visualize Data
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No Data Message -->
+                <div th:unless="${analysisResult}" class="weka-panel">
+                    <div class="weka-panel-header">
+                        📊 Dataset Analysis
+                    </div>
+                    <div class="weka-panel-body text-center">
+                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <h5>No Dataset Loaded</h5>
+                        <p class="text-muted">Upload a CSV file or load sample data to see analysis results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript for Charts -->
+    <script th:if="${analysisResult}">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Class Distribution Chart
+            const ctx = document.getElementById('classDistributionChart');
+            if (ctx) {
+                // Get class data from Thymeleaf
+                const classData = /*[[${analysisResult.frequencyTables}]]*/ {};
+                
+                // Find the last column (class column) data
+                const columns = Object.keys(classData);
+                const lastColumn = columns[columns.length - 1];
+                const classDistribution = classData[lastColumn];
+                
+                if (classDistribution) {
+                    const labels = Object.keys(classDistribution);
+                    const data = Object.values(classDistribution);
+                    
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: [
+                                    '#2c5aa0',
+                                    '#5a9bd4',
+                                    '#8bb6e8',
+                                    '#b7d0f0',
+                                    '#d9e5f8'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: lastColumn + ' Distribution'
+                                },
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

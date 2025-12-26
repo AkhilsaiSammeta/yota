@@ -1,0 +1,46 @@
+# Ignore compiled files
+*.class
+*.jar
+
+# Ignore IDE files
+.project
+.classpath
+.settings/
+*.iml
+.idea/
+
+# Ignore build directories
+bin/
+build/
+target/
+out/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.temp
+*~
+
+# Ignore backup files
+*.bak
+*.backup
+
+# Ignore distribution/release files
+dist/
+portable/
+release/
+
+# Keep sample data but ignore user uploads
+# data/*.csv
+# !data/sample_data.csv
+# !data/test_upload.csv
+
+# Ignore documentation artifacts
+*.pdf
+*.docx
