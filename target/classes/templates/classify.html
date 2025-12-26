@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{index :: html}">
+<head>
+    <title>Classification - YOTA ML Engine</title>
+</head>
+<body>
+    <div th:fragment="content" class="tab-pane fade show active" id="classify" role="tabpanel">
+        <div class="row">
+            <!-- Left Panel - ML Configuration -->
+            <div class="col-md-4">
+                <div class="weka-panel">
+                    <div class="weka-panel-header">
+                        🤖 Classifier Configuration
+                    </div>
+                    <div class="weka-panel-body">
+                        <form th:action="@{/run-ml}" method="post">
+                            <div class="mb-3">
+                                <label for="algorithm" class="form-label">Algorithm:</label>
+                                <select class="form-select" id="algorithm" disabled>
+                                    <option selected>K-Nearest Neighbors (KNN)</option>
+                                </select>
+                                <small class="text-muted">More algorithms coming soon!</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="kValue" class="form-label">K Value (Neighbors):</label>
+                                <input type="range" class="form-range" id="kValue" name="kValue" 
+                                       min="1" max="15" value="3" oninput="updateKValue(this.value)">
+                                <div class="d-flex justify-content-between">
+                                    <small>1</small>
+                                    <strong id="kValueDisplay">K = 3</strong>
+                                    <small>15</small>
+                                </div>
+                                <small class="text-muted">Higher K = smoother boundaries, Lower K = more sensitive</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="trainRatio" class="form-label">Training Split:</label>
+                                <input type="range" class="form-range" id="trainRatio" name="trainRatio" 
+                                       min="0.5" max="0.9" step="0.05" value="0.7" oninput="updateTrainRatio(this.value)">
+                                <div class="d-flex justify-content-between">
+                                    <small>50%</small>
+                                    <strong id="trainRatioDisplay">70% Train / 30% Test</strong>
+                                    <small>90%</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Cross-Validation:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="crossValidation" name="crossValidation">
+                                    <label class="form-check-label" for="crossValidation">
+                                        Enable 5-Fold Cross-Validation
+                                    </label>
+                                </div>
+                                <small class="text-muted">More robust evaluation method</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-weka w-100" th:disabled="${dataset == null}">
+                                <i class="fas fa-play"></i> Run Classification
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Dataset Info -->
+                <div th:if="${dataset}" class="weka-panel">
+                    <div class="weka-panel-header">
+                        📊 Current Dataset
+                    </div>
+                    <div class="weka-panel-body">
+                        <p><strong>Name:</strong> <span th:text="${dataset.name}">Dataset</span></p>
+                        <p><strong>Instances:</strong> <span th:text="${dataset.numInstances}">0</span></p>
+                        <p><strong>Attributes:</strong> <span th:text="${dataset.numAttributes}">0</span></p>
+                        <p><strong>Class:</strong> <span th:text="${dataset.classAttribute?.name}">Unknown</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Results -->
+            <div class="col-md-8">
+                <div th:if="${mlResult}" class="weka-panel">
+                    <div class="weka-panel-header">
+                        🎯 Classification Results
+                    </div>
+                    <div class="weka-panel-body">
+                        <!-- Performance Metrics -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="metric-card bg-success text-white">
+                                    <div class="metric-value" th:text="${#numbers.formatDecimal(mlResult.accuracy, 0, 1)} + '%'">0%</div>
+                                    <div class="metric-label">Accuracy</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" th:text="${mlResult.kValue}">3</div>
+                                    <div class="metric-label">K Value Used</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" th:text="${mlResult.trainingInstances}">0</div>
+                                    <div class="metric-label">Training Set</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" th:text="${mlResult.testInstances}">0</div>
+                                    <div class="metric-label">Test Set</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Confusion Matrix -->
+                        <div class="mb-4">
+                            <h5><i class="fas fa-table"></i> Confusion Matrix</h5>
+                            <div id="confusionMatrix" class="mb-3">
+                                <!-- Matrix will be generated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Detailed Results -->
+                        <div class="mb-3">
+                            <h5><i class="fas fa-clipboard-list"></i> Detailed Classification Report</h5>
+                            <div class="result-text" id="classificationReport">
+                                Loading detailed results...
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary" onclick="exportResults()">
+                                <i class="fas fa-download"></i> Export Results
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="runNewExperiment()">
+                                <i class="fas fa-redo"></i> Run New Experiment
+                            </button>
+                            <a th:href="@{/visualize}" class="btn btn-outline-info">
+                                <i class="fas fa-chart-line"></i> Visualize Results
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No Results Message -->
+                <div th:unless="${mlResult}" class="weka-panel">
+                    <div class="weka-panel-header">
+                        🎯 Classification Results
+                    </div>
+                    <div class="weka-panel-body text-center">
+                        <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                        <h5>No Classification Results</h5>
+                        <p class="text-muted">Configure parameters and run classification to see results</p>
+                        
+                        <div th:unless="${dataset}" class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>No Dataset:</strong> Please load a dataset in the 
+                            <a th:href="@{/preprocess}">Preprocess</a> tab first.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript for Interactive Features -->
+    <script>
+        function updateKValue(value) {
+            document.getElementById('kValueDisplay').textContent = 'K = ' + value;
+        }
+        
+        function updateTrainRatio(value) {
+            const trainPercent = Math.round(value * 100);
+            const testPercent = 100 - trainPercent;
+            document.getElementById('trainRatioDisplay').textContent = 
+                trainPercent + '% Train / ' + testPercent + '% Test';
+        }
+        
+        function exportResults() {
+            // Implement results export
+            alert('Export functionality coming soon!');
+        }
+        
+        function runNewExperiment() {
+            // Reset form and run again
+            if (confirm('Reset current results and run new experiment?')) {
+                window.location.reload();
+            }
+        }
+        
+        // Generate confusion matrix visualization
+        document.addEventListener('DOMContentLoaded', function() {
+            const mlResult = /*[[${mlResult}]]*/ null;
+            
+            if (mlResult && mlResult.confusionMatrix) {
+                generateConfusionMatrix(mlResult.confusionMatrix);
+                generateClassificationReport(mlResult);
+            }
+        });
+        
+        function generateConfusionMatrix(matrix) {
+            const container = document.getElementById('confusionMatrix');
+            
+            // Simple HTML table representation
+            let html = '<table class="table table-bordered text-center">';
+            html += '<thead><tr><th></th>';
+            
+            const classes = Object.keys(matrix);
+            classes.forEach(cls => {
+                html += '<th>Predicted<br>' + cls + '</th>';
+            });
+            html += '</tr></thead><tbody>';
+            
+            classes.forEach(actualClass => {
+                html += '<tr><th>Actual<br>' + actualClass + '</th>';
+                classes.forEach(predictedClass => {
+                    const count = matrix[actualClass] && matrix[actualClass][predictedClass] || 0;
+                    html += '<td>' + count + '</td>';
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function generateClassificationReport(mlResult) {
+            const container = document.getElementById('classificationReport');
+            
+            let report = '=== Classification Report ===\n\n';
+            report += 'Algorithm: ' + mlResult.algorithmName + '\n';
+            report += 'K Value: ' + mlResult.kValue + '\n';
+            report += 'Training Instances: ' + mlResult.trainingInstances + '\n';
+            report += 'Test Instances: ' + mlResult.testInstances + '\n';
+            report += 'Overall Accuracy: ' + mlResult.accuracy.toFixed(2) + '%\n\n';
+            
+            report += '=== Performance by Class ===\n';
+            if (mlResult.precision !== undefined) {
+                report += 'Precision: ' + mlResult.precision.toFixed(2) + '%\n';
+            }
+            if (mlResult.recall !== undefined) {
+                report += 'Recall: ' + mlResult.recall.toFixed(2) + '%\n';
+            }
+            
+            report += '\n=== Algorithm Details ===\n';
+            report += 'K-Nearest Neighbors uses the ' + mlResult.kValue + ' closest neighbors\n';
+            report += 'to make predictions based on majority voting.\n\n';
+            report += 'Distance Metric: Euclidean Distance\n';
+            report += 'Voting Strategy: Simple Majority\n';
+            
+            container.textContent = report;
+        }
+    </script>
+</body>
+</html>

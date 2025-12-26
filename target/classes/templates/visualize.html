@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{index :: html}">
+<head>
+    <title>Visualize - YOTA ML Engine</title>
+</head>
+<body>
+    <div th:fragment="content" class="tab-pane fade show active" id="visualize" role="tabpanel">
+        <div class="row">
+            <!-- Left Panel - Chart Controls -->
+            <div class="col-md-3">
+                <div class="weka-panel">
+                    <div class="weka-panel-header">
+                        📊 Visualization Controls
+                    </div>
+                    <div class="weka-panel-body">
+                        <div class="mb-3">
+                            <label class="form-label">Chart Type:</label>
+                            <select class="form-select" id="chartType" onchange="updateVisualization()">
+                                <option value="class-distribution">Class Distribution</option>
+                                <option value="attribute-histogram">Attribute Histogram</option>
+                                <option value="scatter-plot">Scatter Plot</option>
+                                <option value="correlation-matrix">Correlation Matrix</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="attributeSelector">
+                            <label class="form-label">Select Attribute:</label>
+                            <select class="form-select" id="selectedAttribute">
+                                <option value="">-- Select Attribute --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="scatterControls" style="display: none;">
+                            <label class="form-label">X-Axis:</label>
+                            <select class="form-select mb-2" id="xAxis">
+                                <option value="">-- Select X Axis --</option>
+                            </select>
+                            <label class="form-label">Y-Axis:</label>
+                            <select class="form-select" id="yAxis">
+                                <option value="">-- Select Y Axis --</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-weka w-100" onclick="updateVisualization()">
+                            <i class="fas fa-chart-bar"></i> Update Chart
+                        </button>
+                        
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <h6>Export Options:</h6>
+                            <button class="btn btn-outline-secondary btn-sm w-100 mb-2" onclick="exportChart('png')">
+                                <i class="fas fa-image"></i> Export as PNG
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="exportChart('pdf')">
+                                <i class="fas fa-file-pdf"></i> Export as PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dataset Summary -->
+                <div th:if="${dataset}" class="weka-panel">
+                    <div class="weka-panel-header">
+                        📈 Dataset Overview
+                    </div>
+                    <div class="weka-panel-body">
+                        <p><strong>Dataset:</strong> <span th:text="${dataset.name}">Dataset</span></p>
+                        <p><strong>Instances:</strong> <span th:text="${dataset.numInstances}">0</span></p>
+                        <p><strong>Attributes:</strong> <span th:text="${dataset.numAttributes}">0</span></p>
+                        
+                        <h6 class="mt-3">Available Attributes:</h6>
+                        <ul class="list-unstyled" th:if="${dataset.attributes}">
+                            <li th:each="attr : ${dataset.attributes}">
+                                <span class="badge" 
+                                      th:classappend="${attr.type == 'numeric'} ? 'bg-primary' : 'bg-secondary'"
+                                      th:text="${attr.name}">Attribute</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Visualization Area -->
+            <div class="col-md-9">
+                <div class="weka-panel">
+                    <div class="weka-panel-header">
+                        <span id="chartTitle">📊 Data Visualization</span>
+                        <div class="float-end">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="fullscreenChart()">
+                                <i class="fas fa-expand"></i> Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                    <div class="weka-panel-body">
+                        <div class="chart-container" style="position: relative; height: 500px;">
+                            <canvas id="mainChart" width="800" height="500"></canvas>
+                        </div>
+                        
+                        <!-- Chart Description -->
+                        <div id="chartDescription" class="mt-3 p-3 bg-light border rounded">
+                            <h6>Chart Information:</h6>
+                            <p id="chartInfo">Select a chart type to view data visualization.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Statistics Panel -->
+                <div class="weka-panel mt-3">
+                    <div class="weka-panel-header">
+                        📊 Visualization Statistics
+                    </div>
+                    <div class="weka-panel-body">
+                        <div class="row" id="visualizationStats">
+                            <div class="col-md-12">
+                                <p class="text-muted">Statistics will appear when a chart is generated.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript for Visualizations -->
+    <script>
+        let currentChart = null;
+        let dataset = /*[[${dataset}]]*/ null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (dataset) {
+                populateAttributeSelectors();
+                updateVisualization(); // Load default visualization
+            } else {
+                document.getElementById('chartInfo').innerHTML = 
+                    '<div class="alert alert-warning">No dataset loaded. Please load a dataset in the <a href="/preprocess">Preprocess</a> tab.</div>';
+            }
+        });
+        
+        function populateAttributeSelectors() {
+            const attributeSelect = document.getElementById('selectedAttribute');
+            const xAxisSelect = document.getElementById('xAxis');
+            const yAxisSelect = document.getElementById('yAxis');
+            
+            // Clear existing options
+            attributeSelect.innerHTML = '<option value="">-- Select Attribute --</option>';
+            xAxisSelect.innerHTML = '<option value="">-- Select X Axis --</option>';
+            yAxisSelect.innerHTML = '<option value="">-- Select Y Axis --</option>';
+            
+            if (dataset && dataset.attributes) {
+                dataset.attributes.forEach((attr, index) => {
+                    const option1 = new Option(attr.name + ' (' + attr.type + ')', index);
+                    const option2 = new Option(attr.name + ' (' + attr.type + ')', index);
+                    const option3 = new Option(attr.name + ' (' + attr.type + ')', index);
+                    
+                    attributeSelect.add(option1);
+                    xAxisSelect.add(option2);
+                    yAxisSelect.add(option3);
+                });
+            }
+        }
+        
+        function updateVisualization() {
+            const chartType = document.getElementById('chartType').value;
+            const ctx = document.getElementById('mainChart');
+            
+            // Destroy existing chart
+            if (currentChart) {
+                currentChart.destroy();
+            }
+            
+            // Show/hide controls based on chart type
+            updateControlsVisibility(chartType);
+            
+            // Generate appropriate visualization
+            switch (chartType) {
+                case 'class-distribution':
+                    generateClassDistribution(ctx);
+                    break;
+                case 'attribute-histogram':
+                    generateAttributeHistogram(ctx);
+                    break;
+                case 'scatter-plot':
+                    generateScatterPlot(ctx);
+                    break;
+                case 'correlation-matrix':
+                    generateCorrelationMatrix(ctx);
+                    break;
+                default:
+                    generateClassDistribution(ctx);
+            }
+        }
+        
+        function updateControlsVisibility(chartType) {
+            const attributeSelector = document.getElementById('attributeSelector');
+            const scatterControls = document.getElementById('scatterControls');
+            
+            // Hide all controls first
+            attributeSelector.style.display = 'none';
+            scatterControls.style.display = 'none';
+            
+            // Show relevant controls
+            if (chartType === 'attribute-histogram') {
+                attributeSelector.style.display = 'block';
+            } else if (chartType === 'scatter-plot') {
+                scatterControls.style.display = 'block';
+            }
+        }
+        
+        function generateClassDistribution(ctx) {
+            // Fetch class distribution data
+            fetch('/api/visualization-data?type=class-distribution')
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        const labels = Object.keys(data);
+                        const values = Object.values(data);
+                        
+                        currentChart = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    data: values,
+                                    backgroundColor: [
+                                        '#2c5aa0', '#5a9bd4', '#8bb6e8', 
+                                        '#b7d0f0', '#d9e5f8', '#ff6b6b'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: 'Class Distribution'
+                                    },
+                                    legend: {
+                                        position: 'bottom'
+                                    }
+                                }
+                            }
+                        });
+                        
+                        updateChartInfo('Class Distribution', 
+                            'Shows the distribution of different classes in the dataset. ' +
+                            'Each slice represents the proportion of instances for each class.');
+                        
+                        updateVisualizationStats(data, 'class');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading class distribution:', err);
+                    updateChartInfo('Error', 'Could not load class distribution data.');
+                });
+        }
+        
+        function generateAttributeHistogram(ctx) {
+            const selectedAttr = document.getElementById('selectedAttribute').value;
+            
+            if (!selectedAttr) {
+                updateChartInfo('Attribute Histogram', 'Please select an attribute to display.');
+                return;
+            }
+            
+            // Fetch column distribution data
+            fetch('/api/visualization-data?type=column-distribution')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && dataset.attributes[selectedAttr]) {
+                        const attrName = dataset.attributes[selectedAttr].name;
+                        const attrData = data[attrName];
+                        
+                        if (attrData) {
+                            const labels = Object.keys(attrData);
+                            const values = Object.values(attrData);
+                            
+                            currentChart = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Frequency',
+                                        data: values,
+                                        backgroundColor: '#2c5aa0',
+                                        borderColor: '#1e3d72',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        title: {
+                                            display: true,
+                                            text: 'Histogram: ' + attrName
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Frequency'
+                                            }
+                                        },
+                                        x: {
+                                            title: {
+                                                display: true,
+                                                text: attrName
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                            
+                            updateChartInfo('Attribute Histogram: ' + attrName, 
+                                'Shows the frequency distribution of values for the selected attribute.');
+                            
+                            updateVisualizationStats(attrData, 'histogram');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading histogram data:', err);
+                });
+        }
+        
+        function generateScatterPlot(ctx) {
+            const xAxis = document.getElementById('xAxis').value;
+            const yAxis = document.getElementById('yAxis').value;
+            
+            if (!xAxis || !yAxis) {
+                updateChartInfo('Scatter Plot', 'Please select both X and Y axis attributes.');
+                return;
+            }
+            
+            // For now, show a placeholder
+            currentChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Data Points',
+                        data: [], // Would need actual data points
+                        backgroundColor: '#2c5aa0'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Scatter Plot (Coming Soon)'
+                        }
+                    }
+                }
+            });
+            
+            updateChartInfo('Scatter Plot', 'Scatter plot functionality is under development.');
+        }
+        
+        function generateCorrelationMatrix(ctx) {
+            updateChartInfo('Correlation Matrix', 'Correlation matrix functionality is under development.');
+        }
+        
+        function updateChartInfo(title, description) {
+            document.getElementById('chartTitle').innerHTML = '📊 ' + title;
+            document.getElementById('chartInfo').innerHTML = description;
+        }
+        
+        function updateVisualizationStats(data, type) {
+            const statsContainer = document.getElementById('visualizationStats');
+            
+            let statsHtml = '';
+            
+            if (type === 'class') {
+                const total = Object.values(data).reduce((a, b) => a + b, 0);
+                const classes = Object.keys(data).length;
+                
+                statsHtml = `
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-value">${total}</div>
+                            <div class="metric-label">Total Instances</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-value">${classes}</div>
+                            <div class="metric-label">Unique Classes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-value">${(Math.max(...Object.values(data)) / total * 100).toFixed(1)}%</div>
+                            <div class="metric-label">Majority Class</div>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'histogram') {
+                const values = Object.values(data);
+                const total = values.reduce((a, b) => a + b, 0);
+                const unique = values.length;
+                const max = Math.max(...values);
+                
+                statsHtml = `
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-value">${total}</div>
+                            <div class="metric-label">Total Values</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-value">${unique}</div>
+                            <div class="metric-label">Unique Values</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-value">${max}</div>
+                            <div class="metric-label">Max Frequency</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            statsContainer.innerHTML = statsHtml;
+        }
+        
+        function exportChart(format) {
+            if (currentChart) {
+                const url = currentChart.toBase64Image();
+                const link = document.createElement('a');
+                link.download = 'yota-chart.' + format;
+                link.href = url;
+                link.click();
+            } else {
+                alert('No chart to export. Please generate a chart first.');
+            }
+        }
+        
+        function fullscreenChart() {
+            const chartContainer = document.querySelector('.chart-container');
+            if (chartContainer.requestFullscreen) {
+                chartContainer.requestFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>

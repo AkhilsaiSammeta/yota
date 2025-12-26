@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">YOTA ML Engine</title>
+    
+    <!-- Bootstrap CSS -->
+    <link th:href="@{/webjars/bootstrap/5.3.0/css/bootstrap.min.css}" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script th:src="@{/webjars/chartjs/4.2.1/chart.min.js}"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        /* WEKA-like styling */
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c5aa0 !important;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #495057;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            background-color: #f8f9fa;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #2c5aa0;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+            font-weight: bold;
+        }
+        
+        .weka-panel {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            background-color: #fff;
+            margin-bottom: 1rem;
+        }
+        
+        .weka-panel-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .weka-panel-body {
+            padding: 1rem;
+        }
+        
+        .status-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .result-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 1rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 0.375rem;
+            padding: 2rem;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area:hover {
+            border-color: #2c5aa0;
+            background-color: #e9ecef;
+        }
+        
+        .btn-weka {
+            background-color: #2c5aa0;
+            border-color: #2c5aa0;
+            color: white;
+        }
+        
+        .btn-weka:hover {
+            background-color: #1e3d72;
+            border-color: #1e3d72;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <div class="container-fluid">
+            <span class="navbar-brand logo">🚀 YOTA ML Engine</span>
+            <span class="navbar-text text-muted">WEKA-like Machine Learning Interface</span>
+        </div>
+    </nav>
+    
+    <!-- Tab Navigation -->
+    <div class="container-fluid mt-3">
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" th:classappend="${currentTab == 'home'} ? 'active'" 
+                   th:href="@{/}" role="tab">
+                    🏠 Home
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" th:classappend="${currentTab == 'preprocess'} ? 'active'" 
+                   th:href="@{/preprocess}" role="tab">
+                    📊 Preprocess
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" th:classappend="${currentTab == 'classify'} ? 'active'" 
+                   th:href="@{/classify}" role="tab">
+                    🤖 Classify
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" th:classappend="${currentTab == 'visualize'} ? 'active'" 
+                   th:href="@{/visualize}" role="tab">
+                    📈 Visualize
+                </a>
+            </li>
+        </ul>
+        
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="tab-content mt-3" id="mainTabsContent">
+            <!-- Content will be inserted here based on current tab -->
+            <div th:if="${currentTab == 'home'}" th:insert="~{:: home-content}"></div>
+            <div th:if="${currentTab == 'preprocess'}" th:insert="~{preprocess :: content}"></div>
+            <div th:if="${currentTab == 'classify'}" th:insert="~{classify :: content}"></div>
+            <div th:if="${currentTab == 'visualize'}" th:insert="~{visualize :: content}"></div>
+            
+            <!-- Home Content Fragment -->
+            <div th:fragment="home-content" class="tab-pane fade show active" id="home" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="weka-panel">
+                            <div class="weka-panel-header">
+                                Welcome to YOTA ML Engine
+                            </div>
+                            <div class="weka-panel-body">
+                                <h4>🎯 WEKA-like Machine Learning Made Simple</h4>
+                                <p>A beginner-friendly machine learning interface similar to WEKA Explorer, built with:</p>
+                                <ul>
+                                    <li><strong>Power BI-style Analytics:</strong> Descriptive statistics, frequency analysis</li>
+                                    <li><strong>K-Nearest Neighbors:</strong> Complete implementation from scratch</li>
+                                    <li><strong>Professional Evaluation:</strong> Confusion matrix, accuracy metrics</li>
+                                    <li><strong>Interactive Visualization:</strong> Charts and graphs for insights</li>
+                                </ul>
+                                
+                                <h5 class="mt-4">🚀 Quick Start Guide:</h5>
+                                <ol>
+                                    <li><strong>Preprocess:</strong> Load your CSV data or use sample dataset</li>
+                                    <li><strong>Classify:</strong> Run K-Nearest Neighbors algorithm</li>
+                                    <li><strong>Visualize:</strong> Explore your data with interactive charts</li>
+                                </ol>
+                                
+                                <div class="mt-4">
+                                    <a th:href="@{/preprocess}" class="btn btn-weka btn-lg me-2">
+                                        📊 Start with Data Loading
+                                    </a>
+                                    <form th:action="@{/load-sample}" method="post" style="display: inline;">
+                                        <button type="submit" class="btn btn-outline-secondary btn-lg" 
+                                               onclick="return confirm('Load sample employee dataset?')">
+                                            📋 Load Sample Data
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="weka-panel">
+                            <div class="weka-panel-header">
+                                System Status
+                            </div>
+                            <div class="weka-panel-body">
+                                <div class="status-panel">
+                                    <h6><i class="fas fa-database"></i> Current Dataset</h6>
+                                    <div id="current-dataset-info">
+                                        <span class="text-muted">No dataset loaded</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="status-panel">
+                                    <h6><i class="fas fa-robot"></i> ML Status</h6>
+                                    <div id="ml-status-info">
+                                        <span class="text-muted">Ready to train</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="status-panel">
+                                    <h6><i class="fas fa-chart-line"></i> Features</h6>
+                                    <ul class="list-unstyled mb-0">
+                                        <li>✅ CSV File Loading</li>
+                                        <li>✅ Statistical Analysis</li>
+                                        <li>✅ KNN Classification</li>
+                                        <li>✅ Performance Evaluation</li>
+                                        <li>✅ Data Visualization</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer mt-5 py-3 bg-light border-top">
+        <div class="container-fluid text-center">
+            <span class="text-muted">
+                YOTA ML Engine v1.0 | Built with ❤️ for Machine Learning Education | 
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </span>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script th:src="@{/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/webjars/jquery/3.7.0/jquery.min.js}"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-update system status
+        function updateSystemStatus() {
+            // Check current dataset
+            fetch('/api/dataset')
+                .then(response => response.json())
+                .then(data => {
+                    const datasetInfo = document.getElementById('current-dataset-info');
+                    if (data && data.datasetName) {
+                        datasetInfo.innerHTML = `
+                            <strong>${data.datasetName}</strong><br>
+                            <small>${data.totalRows} rows, ${data.totalColumns} columns</small>
+                        `;
+                    }
+                })
+                .catch(err => console.log('No dataset loaded'));
+                
+            // Check ML status
+            fetch('/api/ml-results')
+                .then(response => response.json())
+                .then(data => {
+                    const mlStatus = document.getElementById('ml-status-info');
+                    if (data && data.algorithmName) {
+                        mlStatus.innerHTML = `
+                            <strong>${data.algorithmName}</strong><br>
+                            <small>Accuracy: ${data.accuracy.toFixed(2)}%</small>
+                        `;
+                    }
+                })
+                .catch(err => console.log('No ML results'));
+        }
+        
+        // Update status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSystemStatus();
+        });
+    </script>
+</body>
+</html>

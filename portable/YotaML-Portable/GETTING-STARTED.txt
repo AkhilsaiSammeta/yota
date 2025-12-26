@@ -1,0 +1,36 @@
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                      🎉 YOTA ML ENGINE READY TO USE! 🎉                        ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+🚀 TO START USING YOTA ML ENGINE:
+
+   1. Double-click "YotaML.exe"
+   2. Wait for web browser to open
+   3. Start using machine learning!
+
+📦 PACKAGE INCLUDES:
+
+   🎯 YotaML.exe - Main application launcher
+   ☕ Java-based ML engine with 4 algorithms
+   🌐 Professional web interface
+   📊 Sample datasets for immediate testing
+   📖 Complete documentation
+
+💡 QUICK TIPS:
+
+   • Bookmark http://localhost:8080 for easy access
+   • Try the sample data in the data\ folder first
+   • Check README.txt for complete instructions
+   • Use Create-Desktop-Shortcut.bat for easy access
+
+🎓 PERFECT FOR:
+
+   • Learning machine learning concepts
+   • Data science projects
+   • Classroom demonstrations  
+   • Business data analysis
+   • Research and experimentation
+
+═══════════════════════════════════════════════════════════════════════════════════
+Ready to explore machine learning? Double-click YotaML.exe to begin!
+═══════════════════════════════════════════════════════════════════════════════════

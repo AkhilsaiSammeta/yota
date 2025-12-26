@@ -1,0 +1,15 @@
+🚀 YOTA ML Engine - Quick Start
+═══════════════════════════════════
+
+⚡ FASTEST WAY TO GET STARTED:
+
+1️⃣ Double-click: YotaML.bat
+2️⃣ Wait for browser to open  
+3️⃣ Click "Load Sample Data"
+4️⃣ Choose "K-Nearest Neighbors"
+5️⃣ Click "Train Model"
+6️⃣ See your results!
+
+🎯 That's it! You're using machine learning!
+
+For detailed instructions, see README.txt
