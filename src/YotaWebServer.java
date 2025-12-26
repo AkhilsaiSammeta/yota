@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 
 /**
- * AYOTA WEB SERVER
+ * YOTA WEB SERVER
  * 
  * Purpose: Lightweight HTTP server for WEKA-like ML interface
  * Uses only built-in Java libraries (no Maven/external dependencies)
@@ -43,7 +43,7 @@ public class YotaWebServer {
                 System.err.println("❌ Port 8080 is already in use by another application");
                 System.err.println("\n💡 Solutions:");
                 System.err.println("1. Close other applications using port 8080");
-                System.err.println("2. Check if AYOTA ML is already running");
+                System.err.println("2. Check if YOTA ML is already running");
                 System.err.println("3. Restart your computer to free up ports");
                 System.err.println("4. Try running this launcher again in a few minutes");
                 System.err.println("\n🔍 To find what's using port 8080:");
@@ -84,7 +84,7 @@ public class YotaWebServer {
                 server.start();
                 
                 // Success! Display startup information
-                System.out.println("🚀 AYOTA ML Web Server Started Successfully!");
+                System.out.println("🚀 YOTA ML Web Server Started Successfully!");
                 System.out.println("=======================================");
                 System.out.println("📊 WEKA-like ML Interface Available");
                 System.out.println("🌐 Open browser: http://localhost:" + port);
@@ -124,7 +124,7 @@ public class YotaWebServer {
         System.err.println("\n💡 Solutions:");
         System.err.println("1. Close applications that might be using these ports");
         System.err.println("2. Restart your computer to free up ports");
-        System.err.println("3. Check if AYOTA ML Engine is already running");
+        System.err.println("3. Check if YOTA ML Engine is already running");
         System.err.println("4. Run 'netstat -ano | findstr :8080' to see what's using port 8080");
         
         if (lastException != null) {
@@ -410,7 +410,7 @@ public class YotaWebServer {
     private String generateHomePage() {
         return generateBasePage("🏠 Home", 
             "<div class='container mt-4'>" +
-            "<h1 class='mb-4'>🚀 AYOTA ML Engine</h1>" +
+            "<h1 class='mb-4'>🚀 YOTA ML Engine</h1>" +
             "<div class='alert alert-info'>" +
             "<h4>🎯 WEKA-like Machine Learning Interface</h4>" +
             "<p>Welcome to your beginner-friendly ML platform!</p>" +
@@ -749,7 +749,7 @@ public class YotaWebServer {
     private String generateBasePage(String title, String content, String activeTab) {
         return "<!DOCTYPE html>" +
                "<html><head>" +
-               "<title>" + title + " - AYOTA ML Engine</title>" +
+               "<title>" + title + " - YOTA ML Engine</title>" +
                "<link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' rel='stylesheet'>" +
                "<style>" +
                ".nav-link.active { background-color: #0d6efd !important; color: white !important; }" +
@@ -760,7 +760,7 @@ public class YotaWebServer {
                
                "<nav class='navbar navbar-expand-lg navbar-dark bg-primary'>" +
                "<div class='container'>" +
-               "<span class='navbar-brand'>🚀 AYOTA ML Engine</span>" +
+               "<span class='navbar-brand'>🚀 YOTA ML Engine</span>" +
                "<span class='navbar-text'>WEKA-like Machine Learning Interface</span>" +
                "</div></nav>" +
                

@@ -9,7 +9,7 @@ echo [1/2] Compiling Java classes...
 echo.
 
 REM Compile all Java classes
-javac -cp src -d bin src\core\*.java src\YotaWebServer.java
+javac -cp src -d bin src/core/*.java src/algorithms/classifier/*.java src/evaluation/*.java src/io/*.java src/ui/*.java src/*.java
 
 if %ERRORLEVEL% EQU 0 (
     echo ✅ Compilation successful!
